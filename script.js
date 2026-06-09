@@ -1,5 +1,5 @@
 // WARNING: Do not upload your actual API key to a public GitHub repository.
-const API_KEY = ''; 
+const API_KEY = '5FuThBereFUKQM3eDK5GpvS4'; 
 
 const imageInput = document.getElementById('imageInput');
 const fileName = document.getElementById('fileName');

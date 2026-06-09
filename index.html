@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Background Remover</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* Material Design Color Palette & Variables */
+    :root {
+      --bg-color: #F8F9FA;         /* Google Light Gray */
+      --surface: #FFFFFF;          /* Pure White */
+      --primary: #0B57D0;          /* Google Action Blue */
+      --primary-hover: #0842A0;    /* Darker Blue */
+      --text-main: #1F1F1F;        /* Almost Black */
+      --text-secondary: #444746;   /* Gray Text */
+      --border-color: #C4C7C5;     /* Soft Border */
+      --radius-sm: 8px;
+      --radius-md: 24px;
+      --radius-pill: 100px;
+      --shadow-elevation: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Navigation Bar */
+    header {
+      background-color: var(--surface);
+      height: 64px;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .brand {
+      font-size: 1.125rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge {
+      background-color: #E8F0FE;
+      color: var(--primary);
+      padding: 4px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    /* Main Content Area */
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    /* The Central App Card */
+    .app-card {
+      background-color: var(--surface);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-elevation);
+      width: 100%;
+      max-width: 800px;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .app-title {
+      font-size: 1.75rem;
+      font-weight: 400;
+      margin-bottom: 8px;
+    }
+
+    .app-subtitle {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      margin-bottom: 32px;
+    }
+
+    /* Upload Zone (The Drop Area) */
+    .upload-zone {
+      border: 2px dashed var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 60px 20px;
+      background-color: #FDFDFD;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .upload-zone:hover {
+      border-color: var(--primary);
+      background-color: #F4F7FC;
+    }
+
+    .upload-icon {
+      background-color: #E8F0FE;
+      color: var(--primary);
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .upload-icon svg {
+      width: 28px;
+      height: 28px;
+      fill: currentColor;
+    }
+
+    .upload-text {
+      font-weight: 500;
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+
+    .upload-hint {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    /* Material Actions */
+    .action-row {
+      margin-top: 32px;
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: var(--radius-pill);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background-color 0.2s;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    /* Clean Minimal Footer */
+    footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+    }
+
+    footer a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    footer a:hover {
+      color: var(--text-main);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0B57D0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+      </svg>
+      Studio Tools
+    </div>
+    <div class="badge">100% Free</div>
+  </header>
+
+  <main>
+    <div class="app-card">
+      <h1 class="app-title">Remove Image Background</h1>
+      <p class="app-subtitle">100% automatic and free. Processing runs securely on your device.</p>
+
+      <label class="upload-zone" for="file-upload">
+        <div class="upload-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"></path>
+          </svg>
+        </div>
+        <div class="upload-text">Drag and drop an image, or click to browse</div>
+        <div class="upload-hint">Supports high-resolution JPG and PNG</div>
+        <input id="file-upload" type="file" accept="image/*">
+      </label>
+
+      <div class="action-row">
+        <button class="btn-primary" onclick="document.getElementById('file-upload').click()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Upload Image
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Founded by Rajesh | Yellow sTudios<br>
+    <a href="https://instagram.com/notrazx" target="_blank">@notrazx</a>
+  </footer>
+
+</body>
+</html>

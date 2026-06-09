@@ -1,5 +1,5 @@
 // Your live Remove.bg API key
-const API_KEY = "5FuThBereFUKQM3eDK5GpvS4"; 
+const API_KEY = "C8dbuL1rVr5JZcdfjSNCbu8T";
 
 const imageInput = document.getElementById('imageInput');
 const fileName = document.getElementById('fileName');

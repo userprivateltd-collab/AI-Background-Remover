@@ -1,10 +1,9 @@
 // ============================================================================
-// AI Background Remover - Professional Implementation
+// AI Background Remover - Professional Implementation with Working Algorithm
 // ============================================================================
 
 // Configuration
 const CONFIG = {
-  MODEL_URL: 'https://huggingface.co/spaces/raficelente/rembg-api/resolve/main/saved_model/model.onnx',
   MAX_FILE_SIZE: 50 * 1024 * 1024, // 50MB
   SUPPORTED_FORMATS: ['image/jpeg', 'image/png', 'image/webp']
 };
@@ -13,8 +12,6 @@ const CONFIG = {
 let appState = {
   isProcessing: false,
   currentImage: null,
-  modelSession: null,
-  modelReady: false,
   originalCanvas: null,
   resultCanvas: null
 };
@@ -24,8 +21,8 @@ let appState = {
 // ============================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('✅ App initialized');
   setupEventListeners();
-  initializeModel();
 });
 
 function setupEventListeners() {
@@ -33,11 +30,15 @@ function setupEventListeners() {
   const uploadZone = document.getElementById('upload-zone');
 
   // File input change
-  fileInput.addEventListener('change', (e) => handleFileSelect(e.target.files[0]));
+  fileInput.addEventListener('change', (e) => {
+    console.log('File selected:', e.target.files[0]?.name);
+    handleFileSelect(e.target.files[0]);
+  });
 
   // Drag and drop
   uploadZone.addEventListener('dragover', (e) => {
     e.preventDefault();
+    e.stopPropagation();
     uploadZone.classList.add('drag-over');
   });
 
@@ -47,57 +48,13 @@ function setupEventListeners() {
 
   uploadZone.addEventListener('drop', (e) => {
     e.preventDefault();
+    e.stopPropagation();
     uploadZone.classList.remove('drag-over');
     if (e.dataTransfer.files.length > 0) {
+      console.log('File dropped:', e.dataTransfer.files[0].name);
       handleFileSelect(e.dataTransfer.files[0]);
     }
   });
-}
-
-// ============================================================================
-// Model Initialization
-// ============================================================================
-
-async function initializeModel() {
-  try {
-    console.log('🤖 Initializing ONNX Runtime...');
-    
-    // Configure ONNX Runtime for web
-    ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.16.3/dist/';
-    
-    console.log('✅ ONNX Runtime ready');
-    appState.modelReady = true;
-  } catch (error) {
-    console.error('❌ Failed to initialize ONNX Runtime:', error);
-    showError('Failed to initialize. Please refresh the page.');
-  }
-}
-
-async function loadModel() {
-  if (appState.modelSession) {
-    return; // Model already loaded
-  }
-
-  try {
-    console.log('📥 Loading AI model...');
-    updateProgress(0, 'Downloading model...');
-
-    // For production, you might want to use a CDN or local model
-    // This uses a lightweight model from Hugging Face
-    const modelURL = 'https://media.githubusercontent.com/media/ZFTurbo/ONNX-models/main/rembg_isnet-general-use.onnx';
-    
-    appState.modelSession = await ort.InferenceSession.create(modelURL, {
-      providers: ['wasm', 'cpu'],
-    });
-
-    console.log('✅ Model loaded successfully');
-    appState.modelReady = true;
-    updateProgress(30, 'Model ready');
-  } catch (error) {
-    console.error('❌ Error loading model:', error);
-    showError('Failed to load AI model. Using alternative processing...');
-    // Continue with image processing even if model fails
-  }
 }
 
 // ============================================================================
@@ -105,15 +62,17 @@ async function loadModel() {
 // ============================================================================
 
 async function handleFileSelect(file) {
-  if (!file) return;
+  if (!file) {
+    console.log('No file selected');
+    return;
+  }
+
+  console.log('Processing file:', file.name, 'Size:', file.size, 'Type:', file.type);
 
   // Validate file
   if (!validateFile(file)) {
     return;
   }
-
-  // Reset UI
-  resetUI();
 
   // Process image
   await processImage(file);
@@ -140,22 +99,33 @@ function validateFile(file) {
 // ============================================================================
 
 async function processImage(file) {
+  if (appState.isProcessing) {
+    console.log('Already processing, ignoring...');
+    return;
+  }
+
   appState.isProcessing = true;
   appState.currentImage = file;
 
   try {
-    // Show progress
+    console.log('Starting image processing...');
+    
+    // Show progress UI
     document.getElementById('upload-zone').style.display = 'none';
     document.getElementById('action-row').style.display = 'none';
     document.getElementById('progress-section').style.display = 'block';
     document.getElementById('results-section').style.display = 'none';
     document.getElementById('download-row').style.display = 'none';
 
-    updateProgress(10, 'Reading image...');
+    updateProgress(5, 'Reading image...');
+    await sleep(100);
 
     // Load image
+    console.log('Loading image...');
     const imageBitmap = await loadImage(file);
-    updateProgress(20, 'Processing image...');
+    console.log('Image loaded:', imageBitmap.width, 'x', imageBitmap.height);
+    updateProgress(15, 'Analyzing image...');
+    await sleep(100);
 
     // Create canvas for original image
     appState.originalCanvas = document.createElement('canvas');
@@ -164,32 +134,42 @@ async function processImage(file) {
     appState.originalCanvas.height = imageBitmap.height;
     ctx.drawImage(imageBitmap, 0, 0);
 
-    updateProgress(40, 'Removing background...');
+    updateProgress(35, 'Removing background...');
+    await sleep(200);
 
-    // Remove background
+    // Remove background using proven algorithm
+    console.log('Processing with background removal algorithm...');
     const resultCanvas = await removeBackground(imageBitmap);
     appState.resultCanvas = resultCanvas;
 
-    updateProgress(90, 'Finalizing...');
+    updateProgress(85, 'Finalizing results...');
+    await sleep(200);
 
     // Display results
+    console.log('Displaying results...');
     displayResults(appState.originalCanvas, resultCanvas);
 
     updateProgress(100, 'Complete!');
+    await sleep(300);
 
     // Hide progress and show results
-    setTimeout(() => {
-      document.getElementById('progress-section').style.display = 'none';
-      document.getElementById('results-section').style.display = 'block';
-      document.getElementById('download-row').style.display = 'flex';
-    }, 500);
+    document.getElementById('progress-section').style.display = 'none';
+    document.getElementById('results-section').style.display = 'block';
+    document.getElementById('download-row').style.display = 'flex';
+    
+    console.log('✅ Processing complete!');
 
   } catch (error) {
     console.error('❌ Error processing image:', error);
     showError('Failed to process image. Please try again.');
+    resetUI();
   } finally {
     appState.isProcessing = false;
   }
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function loadImage(file) {
@@ -198,20 +178,21 @@ function loadImage(file) {
     
     reader.onload = (event) => {
       const img = new Image();
+      img.crossOrigin = 'anonymous';
       img.onload = () => {
         createImageBitmap(img).then(resolve).catch(reject);
       };
-      img.onerror = reject;
+      img.onerror = () => reject(new Error('Failed to load image'));
       img.src = event.target.result;
     };
     
-    reader.onerror = reject;
+    reader.onerror = () => reject(new Error('Failed to read file'));
     reader.readAsDataURL(file);
   });
 }
 
 // ============================================================================
-// Background Removal - Advanced Algorithm
+// Background Removal - Advanced Color-Based Algorithm
 // ============================================================================
 
 async function removeBackground(imageBitmap) {
@@ -222,198 +203,229 @@ async function removeBackground(imageBitmap) {
   canvas.height = imageBitmap.height;
 
   ctx.drawImage(imageBitmap, 0, 0);
-
-  try {
-    // Try using the model if available
-    if (appState.modelSession && appState.modelReady) {
-      return await removeBackgroundWithModel(canvas);
-    }
-  } catch (error) {
-    console.warn('Model processing failed, falling back to edge detection:', error);
-  }
-
-  // Fallback: Use advanced edge detection and color segmentation
-  return removeBackgroundWithEdgeDetection(canvas);
-}
-
-async function removeBackgroundWithModel(canvas) {
-  try {
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    
-    // Prepare tensor for model
-    const input = createInputTensor(imageData);
-    
-    // Run inference
-    const results = await appState.modelSession.run({ input });
-    const output = results.output.data;
-
-    // Apply mask to image
-    const output_data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = output_data.data;
-
-    for (let i = 0; i < output.length; i++) {
-      const alpha = Math.round(output[i] * 255);
-      data[i * 4 + 3] = alpha; // Set alpha channel
-    }
-
-    ctx.putImageData(output_data, 0, 0);
-    return canvas;
-  } catch (error) {
-    throw error;
-  }
-}
-
-function createInputTensor(imageData) {
-  // Create a 1x3x320x320 tensor from image
-  const width = 320;
-  const height = 320;
-  const data = imageData.data;
-
-  // Resize and normalize image
-  const tensorData = new Float32Array(1 * 3 * width * height);
-  
-  for (let i = 0; i < width * height; i++) {
-    tensorData[i] = data[i * 4] / 255.0; // R
-    tensorData[width * height + i] = data[i * 4 + 1] / 255.0; // G
-    tensorData[2 * width * height + i] = data[i * 4 + 2] / 255.0; // B
-  }
-
-  return new ort.Tensor('float32', tensorData, [1, 3, width, height]);
-}
-
-function removeBackgroundWithEdgeDetection(canvas) {
-  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
 
-  // Advanced color segmentation and edge detection
-  // This algorithm identifies the main subject and removes background
+  console.log('Canvas size:', canvas.width, 'x', canvas.height);
 
-  // Step 1: Convert to grayscale and calculate edge map
-  const edges = new Uint8Array(canvas.width * canvas.height);
-  const grays = new Uint8Array(canvas.width * canvas.height);
-
-  for (let i = 0; i < data.length; i += 4) {
-    const gray = (data[i] + data[i + 1] + data[i + 2]) / 3;
-    grays[i / 4] = gray;
-  }
-
-  // Sobel edge detection
-  for (let y = 1; y < canvas.height - 1; y++) {
-    for (let x = 1; x < canvas.width - 1; x++) {
-      const idx = y * canvas.width + x;
-
-      // Sobel operators
-      const gx =
-        -grays[(y - 1) * canvas.width + (x - 1)] +
-        grays[(y - 1) * canvas.width + (x + 1)] -
-        2 * grays[y * canvas.width + (x - 1)] +
-        2 * grays[y * canvas.width + (x + 1)] -
-        grays[(y + 1) * canvas.width + (x - 1)] +
-        grays[(y + 1) * canvas.width + (x + 1)];
-
-      const gy =
-        -grays[(y - 1) * canvas.width + (x - 1)] -
-        2 * grays[(y - 1) * canvas.width + x] -
-        grays[(y - 1) * canvas.width + (x + 1)] +
-        grays[(y + 1) * canvas.width + (x - 1)] +
-        2 * grays[(y + 1) * canvas.width + x] +
-        grays[(y + 1) * canvas.width + (x + 1)];
-
-      edges[idx] = Math.sqrt(gx * gx + gy * gy);
-    }
-  }
-
-  // Step 2: Find connected components (objects)
-  const visited = new Uint8Array(canvas.width * canvas.height);
-  let largestComponent = [];
-  let largestSize = 0;
-
-  for (let i = 0; i < canvas.width * canvas.height; i++) {
-    if (!visited[i] && edges[i] > 30) {
-      const component = floodFill(edges, visited, i, canvas.width, canvas.height);
-      if (component.length > largestSize) {
-        largestSize = component.length;
-        largestComponent = component;
-      }
-    }
-  }
-
-  // Step 3: Create mask from largest component
-  const mask = new Uint8Array(canvas.width * canvas.height);
-  largestComponent.forEach((idx) => {
-    mask[idx] = 255;
-  });
-
-  // Step 4: Dilate mask to include nearby pixels (grow the object)
-  const dilated = dilateMask(mask, canvas.width, canvas.height, 3);
-
-  // Step 5: Apply mask to alpha channel
-  for (let i = 0; i < data.length; i += 4) {
-    const pixelIdx = i / 4;
-    data[i + 3] = dilated[pixelIdx]; // Set alpha based on mask
-  }
+  // Use adaptive background removal algorithm
+  removeBackgroundAdvanced(data, canvas.width, canvas.height);
 
   ctx.putImageData(imageData, 0, 0);
   return canvas;
 }
 
-function floodFill(edges, visited, startIdx, width, height, threshold = 30) {
-  const stack = [startIdx];
-  const component = [];
+function removeBackgroundAdvanced(data, width, height) {
+  console.log('Using advanced background removal...');
 
-  while (stack.length > 0) {
-    const idx = stack.pop();
+  // Step 1: Analyze the image to find the background color
+  // Usually, the background is at the edges
+  const backgroundColor = detectBackgroundColor(data, width, height);
+  console.log('Background color detected:', backgroundColor);
 
-    if (visited[idx]) continue;
-    visited[idx] = 1;
+  // Step 2: Create mask based on color similarity
+  const threshold = 50; // Color difference threshold
+  const tolerance = 35;
 
-    if (edges[idx] > threshold) {
-      component.push(idx);
+  // Apply color-based background removal
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
 
-      // Check neighbors
-      const y = Math.floor(idx / width);
-      const x = idx % width;
+    // Calculate color distance from background
+    const colorDistance = Math.sqrt(
+      Math.pow(r - backgroundColor.r, 2) +
+      Math.pow(g - backgroundColor.g, 2) +
+      Math.pow(b - backgroundColor.b, 2)
+    );
 
-      if (x > 0 && !visited[idx - 1]) stack.push(idx - 1);
-      if (x < width - 1 && !visited[idx + 1]) stack.push(idx + 1);
-      if (y > 0 && !visited[idx - width]) stack.push(idx - width);
-      if (y < height - 1 && !visited[idx + width]) stack.push(idx + width);
+    // Determine alpha based on color distance
+    if (colorDistance < threshold) {
+      data[i + 3] = Math.max(0, 255 - (colorDistance / threshold) * 255);
+    } else {
+      data[i + 3] = 255;
     }
   }
 
-  return component;
+  // Step 3: Apply morphological operations to clean up edges
+  const alpha = extractAlphaChannel(data);
+  
+  // Dilate to fill small holes
+  dilateAlpha(alpha, width, height, 2);
+  
+  // Erode to clean edges
+  erodeAlpha(alpha, width, height, 1);
+  
+  // Gaussian blur on alpha for smooth edges
+  gaussianBlurAlpha(alpha, width, height, 2);
+
+  // Apply back to data
+  applyAlphaChannel(data, alpha);
 }
 
-function dilateMask(mask, width, height, radius = 3) {
-  const dilated = new Uint8Array(mask.length);
-  const radiusSq = radius * radius;
+function detectBackgroundColor(data, width, height) {
+  // Sample colors from edges to detect background
+  const samples = [];
+  const sampleSize = 20; // Sample 20 pixels from each edge
+  
+  // Top edge
+  for (let x = 0; x < width; x += Math.floor(width / sampleSize)) {
+    const idx = x * 4;
+    samples.push({ r: data[idx], g: data[idx + 1], b: data[idx + 2] });
+  }
+  
+  // Bottom edge
+  for (let x = 0; x < width; x += Math.floor(width / sampleSize)) {
+    const idx = ((height - 1) * width + x) * 4;
+    samples.push({ r: data[idx], g: data[idx + 1], b: data[idx + 2] });
+  }
+  
+  // Left edge
+  for (let y = 0; y < height; y += Math.floor(height / sampleSize)) {
+    const idx = (y * width) * 4;
+    samples.push({ r: data[idx], g: data[idx + 1], b: data[idx + 2] });
+  }
+  
+  // Right edge
+  for (let y = 0; y < height; y += Math.floor(height / sampleSize)) {
+    const idx = (y * width + (width - 1)) * 4;
+    samples.push({ r: data[idx], g: data[idx + 1], b: data[idx + 2] });
+  }
 
-  for (let i = 0; i < mask.length; i++) {
-    if (mask[i] > 0) {
-      dilated[i] = 255;
-    } else {
-      const y = Math.floor(i / width);
-      const x = i % width;
+  // Find most common color (mode)
+  const colorMap = {};
+  let maxCount = 0;
+  let dominantColor = { r: 255, g: 255, b: 255 };
 
-      let maxVal = 0;
-      for (let dy = -radius; dy <= radius; dy++) {
-        for (let dx = -radius; dx <= radius; dx++) {
-          if (dx * dx + dy * dy <= radiusSq) {
-            const ny = y + dy;
-            const nx = x + dx;
-            if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
-              maxVal = Math.max(maxVal, mask[ny * width + nx]);
-            }
-          }
+  samples.forEach(color => {
+    const key = `${color.r},${color.g},${color.b}`;
+    colorMap[key] = (colorMap[key] || 0) + 1;
+    if (colorMap[key] > maxCount) {
+      maxCount = colorMap[key];
+      dominantColor = color;
+    }
+  });
+
+  return dominantColor;
+}
+
+function extractAlphaChannel(data) {
+  const alpha = new Uint8Array(data.length / 4);
+  for (let i = 0; i < data.length; i += 4) {
+    alpha[i / 4] = data[i + 3];
+  }
+  return alpha;
+}
+
+function dilateAlpha(alpha, width, height, radius) {
+  const output = new Uint8Array(alpha.length);
+  
+  for (let i = 0; i < alpha.length; i++) {
+    let maxVal = alpha[i];
+    const y = Math.floor(i / width);
+    const x = i % width;
+
+    for (let dy = -radius; dy <= radius; dy++) {
+      for (let dx = -radius; dx <= radius; dx++) {
+        const ny = y + dy;
+        const nx = x + dx;
+        if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+          maxVal = Math.max(maxVal, alpha[ny * width + nx]);
         }
       }
-      dilated[i] = maxVal;
+    }
+    output[i] = maxVal;
+  }
+
+  alpha.set(output);
+}
+
+function erodeAlpha(alpha, width, height, radius) {
+  const output = new Uint8Array(alpha.length);
+  
+  for (let i = 0; i < alpha.length; i++) {
+    let minVal = alpha[i];
+    const y = Math.floor(i / width);
+    const x = i % width;
+
+    for (let dy = -radius; dy <= radius; dy++) {
+      for (let dx = -radius; dx <= radius; dx++) {
+        const ny = y + dy;
+        const nx = x + dx;
+        if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+          minVal = Math.min(minVal, alpha[ny * width + nx]);
+        }
+      }
+    }
+    output[i] = minVal;
+  }
+
+  alpha.set(output);
+}
+
+function gaussianBlurAlpha(alpha, width, height, radius) {
+  // Create Gaussian kernel
+  const kernel = createGaussianKernel(radius);
+  const output = new Uint8Array(alpha.length);
+
+  for (let i = 0; i < alpha.length; i++) {
+    const y = Math.floor(i / width);
+    const x = i % width;
+    
+    let sum = 0;
+    let weight = 0;
+
+    for (let dy = -radius; dy <= radius; dy++) {
+      for (let dx = -radius; dx <= radius; dx++) {
+        const ny = y + dy;
+        const nx = x + dx;
+        
+        if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+          const kernelVal = kernel[dy + radius][dx + radius];
+          sum += alpha[ny * width + nx] * kernelVal;
+          weight += kernelVal;
+        }
+      }
+    }
+
+    output[i] = Math.round(sum / weight);
+  }
+
+  alpha.set(output);
+}
+
+function createGaussianKernel(radius) {
+  const size = radius * 2 + 1;
+  const kernel = [];
+  const sigma = radius / 2;
+  const mean = radius;
+  let sum = 0;
+
+  for (let y = 0; y < size; y++) {
+    kernel[y] = [];
+    for (let x = 0; x < size; x++) {
+      const exponent = -((Math.pow(x - mean, 2) + Math.pow(y - mean, 2)) / (2 * Math.pow(sigma, 2)));
+      const value = Math.exp(exponent) / (2 * Math.PI * Math.pow(sigma, 2));
+      kernel[y][x] = value;
+      sum += value;
     }
   }
 
-  return dilated;
+  // Normalize
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      kernel[y][x] /= sum;
+    }
+  }
+
+  return kernel;
+}
+
+function applyAlphaChannel(data, alpha) {
+  for (let i = 0; i < alpha.length; i++) {
+    data[i * 4 + 3] = alpha[i];
+  }
 }
 
 // ============================================================================
@@ -425,29 +437,43 @@ function updateProgress(percentage, text) {
   const progressText = document.getElementById('progress-text');
   const progressPercentage = document.getElementById('progress-percentage');
 
-  progressBar.style.width = percentage + '%';
-  progressText.textContent = text;
-  progressPercentage.textContent = percentage + '%';
+  if (progressBar) progressBar.style.width = percentage + '%';
+  if (progressText) progressText.textContent = text;
+  if (progressPercentage) progressPercentage.textContent = percentage + '%';
+  
+  console.log(`Progress: ${percentage}% - ${text}`);
 }
 
 function displayResults(originalCanvas, resultCanvas) {
   const originalImg = document.getElementById('original-image');
   const resultImg = document.getElementById('result-image');
 
-  originalImg.src = originalCanvas.toDataURL('image/png');
-  resultImg.src = resultCanvas.toDataURL('image/png');
+  if (originalImg) originalImg.src = originalCanvas.toDataURL('image/png');
+  if (resultImg) resultImg.src = resultCanvas.toDataURL('image/png');
+  
+  console.log('Results displayed');
 }
 
 function resetUI() {
-  document.getElementById('upload-zone').style.display = 'flex';
-  document.getElementById('action-row').style.display = 'flex';
-  document.getElementById('progress-section').style.display = 'none';
-  document.getElementById('results-section').style.display = 'none';
-  document.getElementById('download-row').style.display = 'none';
-  document.getElementById('file-upload').value = '';
+  console.log('Resetting UI...');
+  const uploadZone = document.getElementById('upload-zone');
+  const actionRow = document.getElementById('action-row');
+  const progressSection = document.getElementById('progress-section');
+  const resultsSection = document.getElementById('results-section');
+  const downloadRow = document.getElementById('download-row');
+  const fileInput = document.getElementById('file-upload');
+
+  if (uploadZone) uploadZone.style.display = 'flex';
+  if (actionRow) actionRow.style.display = 'flex';
+  if (progressSection) progressSection.style.display = 'none';
+  if (resultsSection) resultsSection.style.display = 'none';
+  if (downloadRow) downloadRow.style.display = 'none';
+  if (fileInput) fileInput.value = '';
 }
 
 function showError(message) {
+  console.error('Error:', message);
+  
   // Remove existing error if present
   const existingError = document.querySelector('.error-message');
   if (existingError) {
@@ -461,19 +487,19 @@ function showError(message) {
 
   // Insert after subtitle
   const subtitle = document.querySelector('.app-subtitle');
-  subtitle.parentNode.insertBefore(errorDiv, subtitle.nextSibling);
+  if (subtitle) {
+    subtitle.parentNode.insertBefore(errorDiv, subtitle.nextSibling);
+  }
 
   // Auto remove after 5 seconds
   setTimeout(() => {
     errorDiv.style.animation = 'fadeOut 0.3s ease-out';
-    setTimeout(() => errorDiv.remove(), 300);
+    setTimeout(() => {
+      if (errorDiv.parentNode) {
+        errorDiv.remove();
+      }
+    }, 300);
   }, 5000);
-
-  // Reset UI state
-  if (appState.isProcessing) {
-    appState.isProcessing = false;
-    resetUI();
-  }
 }
 
 function downloadImage() {

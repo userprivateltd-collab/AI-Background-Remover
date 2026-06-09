@@ -14,22 +14,42 @@
         </header>
 
         <section class="upload-section">
-            <input type="file" id="imageInput" accept="image/png, image/jpeg">
+            <input type="file" id="imageInput" accept="image/png, image/jpeg, image/webp">
             <label for="imageInput" class="upload-btn">Choose Image</label>
             <p id="fileName">No file chosen</p>
         </section>
 
         <section class="action-section">
             <button id="removeBgBtn" disabled>Remove Background</button>
+            
+            <!-- Progress Bar -->
+            <div id="progressContainer" class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            
             <p id="statusMessage"></p>
         </section>
 
         <section class="result-section">
             <div class="image-container">
-                <img id="originalImage" style="display: none;" alt="Original">
-                <img id="resultImage" style="display: none;" alt="Result">
+                <!-- Wrapper for the live scanning effect -->
+                <div class="image-wrapper" id="originalWrapper" style="display: none;">
+                    <img id="originalImage" alt="Original">
+                    <div id="scanLine" class="scan-line"></div>
+                </div>
+                
+                <div class="image-wrapper" id="resultWrapper" style="display: none;">
+                    <img id="resultImage" alt="Result">
+                </div>
             </div>
+            <br>
             <a id="downloadBtn" class="download-btn" style="display: none;" download="no-bg.png">Download Result</a>
+        </section>
+
+        <!-- New About Section -->
+        <section class="about-section">
+            <h3>About This Tool</h3>
+            <p>This application uses advanced AI to instantly detect the primary subject in any photo and smoothly extract it from the background. Perfect for product photos, profile pictures, and design projects.</p>
         </section>
     </main>
 

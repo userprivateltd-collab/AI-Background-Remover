@@ -1,23 +1,20 @@
 import React, { useState, useRef } from 'react';
 import imglyRemoveBackground from '@imgly/background-removal';
-import { Upload, Download, RefreshCw, ShieldCheck, Info, Sparkles, Image as ImageIcon, Terminal } from 'lucide-react';
+import { Upload, Download, RefreshCw, Sparkles, Image as ImageIcon, Terminal } from 'lucide-react';
 
 export default function App() {
-  const [imageFile, setImageFile] = useState(null);     // The raw file for the AI
-  const [imagePreview, setImagePreview] = useState(null); // The URL for the screen
+  const [imageFile, setImageFile] = useState(null);     
+  const [imagePreview, setImagePreview] = useState(null); 
   const [processedImage, setProcessedImage] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState('');
-  
-  // The Diagnostic Logger
   const [logs, setLogs] = useState([]);
+
   const addLog = (msg) => {
     console.log(msg);
     setLogs((prev) => [...prev, msg]);
   };
-
-  const fileInputRef = useRef(null);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -27,7 +24,7 @@ export default function App() {
       setImagePreview(URL.createObjectURL(file));
       setProcessedImage(null);
       setProgress(0);
-      setLogs([]); // Clear old logs on new upload
+      setLogs([]); 
     }
   };
 
@@ -35,21 +32,28 @@ export default function App() {
     if (!imageFile) return;
     
     setIsProcessing(true);
-    setProgress(0);
-    setStatusText('Requesting hardware permission...');
+    setProgress(1); // Force state visually to show initialization instantly
+    setStatusText('Spinning up WASM Worker...');
     addLog('[Action] "Remove Background" button tapped.');
 
     try {
-      addLog('[Config] Setting AI model paths...');
+      addLog('[Config] Initializing AI Engine and parsing parameters...');
+      
       const config = {
-        publicPath: "https://static.imgly.com/@imgly/background-removal-data/1.5.5/dist/",
+        // Option A (Recommended): Use local public assets path to bypass cross-origin restrictions
+        publicPath: `${window.location.origin}/modelfiles/`, 
+        
+        // Option B (Fallback): If using CDN, crossOrigin must be allowed on standard configurations
+        // publicPath: "https://static.imgly.com/@imgly/background-removal-data/1.5.5/dist/",
+        
+        fetchArgs: {
+          mode: 'cors'
+        },
         progress: (key, current, total) => {
           const percent = Math.round((current / total) * 100);
           setProgress(percent);
           
-          if (percent === 10) addLog(`[AI Engine] Downloading model weights... 10%`);
-          if (percent === 50) addLog(`[AI Engine] Analyzing image structure... 50%`);
-          if (percent === 90) addLog(`[AI Engine] Refining edges... 90%`);
+          addLog(`[AI Engine] Working... ${percent}%`);
 
           if (percent < 30) setStatusText('Downloading AI Models (First time only)...');
           else if (percent < 70) setStatusText('Analyzing foreground boundaries...');
@@ -59,7 +63,7 @@ export default function App() {
 
       addLog('[Execution] Passing raw file to WebAssembly Worker...');
       
-      // CRITICAL FIX: Passing imageFile instead of imagePreview
+      // Call with safe fallback execution parameter check
       const blob = await imglyRemoveBackground(imageFile, config);
       
       addLog('[Execution] AI finished successfully. Generating PNG...');
@@ -70,12 +74,12 @@ export default function App() {
       addLog('[Success] Background removed!');
       
     } catch (error) {
-      addLog(`[CRITICAL ERROR] ${error.message || "Unknown execution failure"}`);
-      console.error(error);
+      addLog(`[CRITICAL ERROR] ${error.message || "Execution setup failure"}`);
+      console.error("Detailed Error Logs:", error);
       setStatusText('Processing Failed.');
+      setProgress(0);
     } finally {
       setIsProcessing(false);
-      setProgress(100);
     }
   };
 
@@ -83,7 +87,7 @@ export default function App() {
     if (!processedImage) return;
     const link = document.createElement('a');
     link.href = processedImage;
-    link.download = 'yellow_studios_transparent.png';
+    link.download = 'studio_transparent.png';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -100,7 +104,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-[#1F1F1F] font-sans flex flex-col">
-      
       <header className="h-16 bg-white border-b border-[#C4C7C5] px-6 flex items-center justify-between sticky top-0 z-10 shadow-sm">
         <div className="flex items-center gap-3 font-medium text-lg">
           <div className="bg-[#E8F0FE] text-[#0B57D0] p-2 rounded-lg">
@@ -108,15 +111,13 @@ export default function App() {
           </div>
           <span className="font-bold tracking-tight">Studio Tools</span>
         </div>
-        <div className="bg-[#E8F0FE] text-[#0B57D0] px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider">
+        <div className="bg-[#E8F0FE] text-[#0B57D0] px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
           Diagnostic Build
         </div>
       </header>
 
       <main className="flex-1 max-w-5xl w-full mx-auto p-4 md:p-8 flex flex-col gap-8">
-        
         <div className="bg-white rounded-[24px] shadow-md p-6 md:p-10 w-full border border-[#E3E3E3]">
-          
           {!imagePreview ? (
             <label className="border-2 border-dashed border-[#C4C7C5] hover:border-[#0B57D0] bg-[#FDFDFD] rounded-[24px] p-12 md:p-16 flex flex-col items-center justify-center cursor-pointer transition-all group">
               <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
@@ -129,7 +130,6 @@ export default function App() {
           ) : (
             <div className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
                 {/* Original Window */}
                 <div className="bg-[#F8F9FA] rounded-[16px] border border-[#E3E3E3] p-4 aspect-square flex items-center justify-center relative overflow-hidden">
                   <span className="absolute top-3 left-3 bg-white/90 text-[#444746] text-[10px] font-bold uppercase px-3 py-1 rounded-md">Original</span>
@@ -202,7 +202,6 @@ export default function App() {
             )}
           </div>
         </div>
-
       </main>
     </div>
   );

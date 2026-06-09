@@ -1,166 +1,92 @@
-:root {
-    --primary: #0b57d0;
-    --surface: #f3f6fc;
-    --text: #1f1f1f;
-    --radius: 24px;
-}
+// Your live Remove.bg API key
+const API_KEY = "5FuThBereFUKQM3eDK5GpvS4"; 
 
-body {
-    font-family: system-ui, -apple-system, sans-serif;
-    background-color: var(--surface);
-    color: var(--text);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    margin: 0;
-    padding: 20px;
-}
+const imageInput = document.getElementById('imageInput');
+const fileName = document.getElementById('fileName');
+const removeBgBtn = document.getElementById('removeBgBtn');
 
-.container {
-    background: white;
-    padding: 2rem;
-    border-radius: var(--radius);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    width: 100%;
-    max-width: 600px;
-    text-align: center;
-}
+const originalWrapper = document.getElementById('originalWrapper');
+const resultWrapper = document.getElementById('resultWrapper');
+const originalImage = document.getElementById('originalImage');
+const resultImage = document.getElementById('resultImage');
 
-header h1 {
-    margin-top: 0;
-    font-size: 1.5rem;
-}
+const downloadBtn = document.getElementById('downloadBtn');
+const statusMessage = document.getElementById('statusMessage');
 
-.upload-section {
-    margin: 2rem 0;
-}
+// New animated elements
+const progressContainer = document.getElementById('progressContainer');
+const scanLine = document.getElementById('scanLine');
 
-input[type="file"] {
-    display: none;
-}
+let selectedFile = null;
 
-.upload-btn, button, .download-btn {
-    background-color: var(--primary);
-    color: white;
-    padding: 10px 24px;
-    border-radius: 100px;
-    border: none;
-    font-size: 1rem;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
-    transition: background 0.2s;
-    font-weight: 500;
-}
+// Handle file selection
+imageInput.addEventListener('change', (e) => {
+    selectedFile = e.target.files[0];
+    if (selectedFile) {
+        fileName.textContent = selectedFile.name;
+        removeBgBtn.disabled = false;
+        
+        // Reset the UI for a new image
+        resultWrapper.style.display = 'none';
+        downloadBtn.style.display = 'none';
+        statusMessage.textContent = "";
+        
+        // Show original image
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            originalImage.src = event.target.result;
+            originalWrapper.style.display = 'block';
+        };
+        reader.readAsDataURL(selectedFile);
+    }
+});
 
-.upload-btn:hover, button:hover, .download-btn:hover {
-    background-color: #0842a0;
-}
+// Handle API Request
+removeBgBtn.addEventListener('click', async () => {
+    if (!selectedFile) return;
 
-button:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-}
+    // Start loading state
+    statusMessage.textContent = "AI is casting its magic... Please wait.";
+    removeBgBtn.disabled = true;
+    progressContainer.style.display = 'block'; // Show progress bar
+    scanLine.classList.add('active'); // Start scanner animation
 
-/* Progress Bar Styles */
-.progress-container {
-    width: 100%;
-    height: 6px;
-    background: #e0e0e0;
-    border-radius: 10px;
-    margin-top: 15px;
-    overflow: hidden;
-    display: none; /* Hidden by default */
-}
+    const formData = new FormData();
+    formData.append('image_file', selectedFile);
+    formData.append('size', 'auto');
 
-.progress-bar {
-    height: 100%;
-    width: 40%;
-    background: var(--primary);
-    border-radius: 10px;
-    animation: loading 1.5s infinite ease-in-out;
-}
+    try {
+        const response = await fetch('https://api.remove.bg/v1.0/removebg', {
+            method: 'POST',
+            headers: {
+                'X-Api-Key': API_KEY
+            },
+            body: formData
+        });
 
-@keyframes loading {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(300%); }
-}
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status} - Check your API key limits or image size.`);
+        }
 
-/* Image Container & Scanning Effect */
-.image-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-    margin-top: 1.5rem;
-}
-
-.image-wrapper {
-    position: relative;
-    width: 48%;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-
-img {
-    width: 100%;
-    display: block;
-    background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), 
-                      linear-gradient(135deg, #ccc 25%, transparent 25%),
-                      linear-gradient(45deg, transparent 75%, #ccc 75%),
-                      linear-gradient(135deg, transparent 75%, #ccc 75%);
-    background-size: 20px 20px;
-    background-position: 0 0, 10px 0, 10px -10px, 0px 10px;
-}
-
-.scan-line {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    background: rgba(11, 87, 208, 0.9);
-    box-shadow: 0 0 15px rgba(11, 87, 208, 1);
-    display: none; /* Hidden by default */
-}
-
-/* Animate the scan line up and down */
-.scan-line.active {
-    display: block;
-    animation: scan 2s infinite linear;
-}
-
-@keyframes scan {
-    0% { top: 0; }
-    50% { top: 100%; }
-    100% { top: 0; }
-}
-
-#statusMessage {
-    font-size: 0.9rem;
-    color: #555;
-    margin-top: 10px;
-    min-height: 20px;
-}
-
-/* About Section */
-.about-section {
-    margin-top: 2.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid #e0e0e0;
-    text-align: left;
-}
-
-.about-section h3 {
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
-    color: #333;
-}
-
-.about-section p {
-    font-size: 0.9rem;
-    color: #666;
-    line-height: 1.5;
-}
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        
+        // Show result
+        resultImage.src = url;
+        resultWrapper.style.display = 'block';
+        
+        // Setup download button
+        downloadBtn.href = url;
+        downloadBtn.style.display = 'inline-block';
+        
+        statusMessage.textContent = "Background removed successfully!";
+    } catch (error) {
+        console.error(error);
+        statusMessage.textContent = "Failed to process image. Make sure your API key has credits remaining.";
+    } finally {
+        // Stop loading state
+        removeBgBtn.disabled = false;
+        progressContainer.style.display = 'none'; // Hide progress bar
+        scanLine.classList.remove('active'); // Stop scanner animation
+    }
+});

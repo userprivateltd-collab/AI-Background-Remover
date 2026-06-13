@@ -4,56 +4,90 @@
     <script src="https://quge5.com/88/tag.min.js" data-zone="248189" async data-cfasync="false"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Background Remover</title>
+    <title>AI Background Remover | Yellow Studios</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="family">
 </head>
 <body>
-    <main class="container">
-        <header>
-            <h1>Background Remover</h1>
-            <p>Upload an image to magically remove the background.</p>
-        </header>
-
-        <section class="upload-section">
-            <input type="file" id="imageInput" accept="image/png, image/jpeg, image/webp">
-            <label for="imageInput" class="upload-btn">Choose Image</label>
-            <p id="fileName">No file chosen</p>
-        </section>
-
-        <section class="action-section">
-            <button id="removeBgBtn" disabled>Remove Background</button>
-            
-            <!-- Progress Bar -->
-            <div id="progressContainer" class="progress-container">
-                <div class="progress-bar"></div>
-            </div>
-            
-            <p id="statusMessage"></p>
-        </section>
-
-        <section class="result-section">
-            <div class="image-container">
-                <!-- Wrapper for the live scanning effect -->
-                <div class="image-wrapper" id="originalWrapper" style="display: none;">
-                    <img id="originalImage" alt="Original">
-                    <div id="scanLine" class="scan-line"></div>
+    <div class="app-layout">
+        <main class="workspace">
+            <header class="app-header">
+                <div class="logo-group">
+                    <span class="sparkle-icon">✨</span>
+                    <h1>Background Remover</h1>
                 </div>
+                <p class="subtitle">Powered by YELLOW STUDIOS AI platform</p>
+            </header>
+
+            <div class="dropzone-card" id="dropZone">
+                <input type="file" id="imageInput" accept="image/png, image/jpeg, image/webp" hidden>
                 
-                <div class="image-wrapper" id="resultWrapper" style="display: none;">
-                    <img id="resultImage" alt="Result">
+                <div class="dropzone-content" id="promptContent">
+                    <div class="upload-icon-cloud">📥</div>
+                    <h3>Drag & drop your image here</h3>
+                    <p>or <span class="browse-link">browse files</span> from your device</p>
+                    <span class="file-specs">Supports PNG, JPEG, WEBP</span>
+                </div>
+
+                <div class="preview-stage" id="previewStage" style="display: none;">
+                    <div class="image-box">
+                        <span class="badge">Original</span>
+                        <div class="image-wrapper" id="originalWrapper">
+                            <img id="originalImage" alt="Original source asset">
+                            <div id="scanLine" class="scan-line"></div>
+                        </div>
+                    </div>
+
+                    <div class="image-box">
+                        <span class="badge badge-ai">Result</span>
+                        <div class="image-wrapper checkerboard" id="resultWrapper">
+                            <img id="resultImage" alt="AI Background Cutout Output">
+                        </div>
+                    </div>
                 </div>
             </div>
-            <br>
-            <a id="downloadBtn" class="download-btn" style="display: none;" download="no-bg.png">Download Result</a>
-        </section>
 
-        <!-- New About Section -->
-        <section class="about-section">
-            <h3>About This Tool</h3>
-            <p>This application is developed by YELLOW STUDIOS,uses advanced AI to instantly detect the primary subject in any photo and smoothly extract it from the background. Perfect for product photos, profile pictures, and design projects.</p>
-        </section>
-        <centre>a one person strat-up @notrazx </centre>
-    </main>
+            <div class="controls-belt">
+                <button id="removeBgBtn" class="btn-primary" disabled>
+                    <span>Run AI Extraction</span>
+                </button>
+                
+                <a id="downloadBtn" class="btn-success" style="display: none;" download="no-bg.png">
+                    Download Clean PNG
+                </a>
+            </div>
+
+            <div id="progressContainer" class="progress-container">
+                <div class="progress-status-row">
+                    <span id="statusMessage">Ready to process</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+                <div class="progress-bar-track">
+                    <div class="progress-bar-fill" id="progressBarFill"></div>
+                </div>
+            </div>
+        </main>
+
+        <aside class="sidebar-panel">
+            <div class="panel-section">
+                <h3>System Directives</h3>
+                <p class="panel-meta">Model: Yellow-Extractor-v2.6</p>
+            </div>
+            
+            <hr class="panel-divider">
+
+            <section class="about-section">
+                <h3>About This Tool</h3>
+                <p>This application is developed by YELLOW STUDIOS,uses advanced AI to instantly detect the primary subject in any photo and smoothly extract it from the background. Perfect for product photos, profile pictures, and design projects.</p>
+            </section>
+
+            <footer class="credits">
+                A one-person startup <a href="https://instagram.com/notrazx" target="_blank" rel="noopener">@notrazx</a>
+            </footer>
+        </aside>
+    </div>
 
     <script src="script.js"></script>
 </body>

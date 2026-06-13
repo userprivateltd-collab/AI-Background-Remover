@@ -8,10 +8,11 @@
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="family">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="app-layout">
+        <!-- Main Workspace -->
         <main class="workspace">
             <header class="app-header">
                 <div class="logo-group">
@@ -21,6 +22,7 @@
                 <p class="subtitle">Powered by YELLOW STUDIOS AI platform</p>
             </header>
 
+            <!-- Interactive Dropzone Area -->
             <div class="dropzone-card" id="dropZone">
                 <input type="file" id="imageInput" accept="image/png, image/jpeg, image/webp" hidden>
                 
@@ -28,9 +30,10 @@
                     <div class="upload-icon-cloud">📥</div>
                     <h3>Drag & drop your image here</h3>
                     <p>or <span class="browse-link">browse files</span> from your device</p>
-                    <span class="file-specs">Supports PNG, JPEG, WEBP</span>
+                    <span class="file-specs" id="fileName">Supports PNG, JPEG, WEBP</span>
                 </div>
 
+                <!-- Live Interactive Workspace Canvas -->
                 <div class="preview-stage" id="previewStage" style="display: none;">
                     <div class="image-box">
                         <span class="badge">Original</span>
@@ -49,16 +52,18 @@
                 </div>
             </div>
 
+            <!-- Action Control Belt -->
             <div class="controls-belt">
                 <button id="removeBgBtn" class="btn-primary" disabled>
                     <span>Run AI Extraction</span>
                 </button>
                 
-                <a id="downloadBtn" class="btn-success" style="display: none;" download="no-bg.png">
+                <a id="downloadBtn" class="btn-success" style="display: none;" download="yellow_studios_no_bg.png">
                     Download Clean PNG
                 </a>
             </div>
 
+            <!-- Progress Engine -->
             <div id="progressContainer" class="progress-container">
                 <div class="progress-status-row">
                     <span id="statusMessage">Ready to process</span>
@@ -70,21 +75,23 @@
             </div>
         </main>
 
+        <!-- Sidebar Panel containing the Context Details -->
         <aside class="sidebar-panel">
             <div class="panel-section">
                 <h3>System Directives</h3>
-                <p class="panel-meta">Model: Yellow-Extractor-v2.6</p>
+                <p class="panel-meta">Model: RemoveBG-Production-v1.0</p>
             </div>
             
             <hr class="panel-divider">
 
+            <!-- Original Content Section Kept Exactly as requested -->
             <section class="about-section">
                 <h3>About This Tool</h3>
                 <p>This application is developed by YELLOW STUDIOS,uses advanced AI to instantly detect the primary subject in any photo and smoothly extract it from the background. Perfect for product photos, profile pictures, and design projects.</p>
             </section>
 
             <footer class="credits">
-                A one-person startup <a href="https://instagram.com/notrazx" target="_blank" rel="noopener">@notrazx</a>
+                A one-person startup by <a href="https://instagram.com/notrazx" target="_blank" rel="noopener">@notrazx</a>
             </footer>
         </aside>
     </div>

@@ -14,12 +14,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultImage = document.getElementById('resultImage');
     const removeBgBtn = document.getElementById('removeBgBtn');
     const downloadBtn = document.getElementById('downloadBtn');
+    const resetBtn = document.getElementById('resetBtn'); // The new reset trigger
     
     const progressContainer = document.getElementById('progressContainer');
     const progressBarFill = document.getElementById('progressBarFill');
     const progressPercent = document.getElementById('progressPercent');
     const statusMessage = document.getElementById('statusMessage');
     const originalWrapper = document.getElementById('originalWrapper');
+
+    // Object URL store to safely manage browser memory lifecycles
+    let currentResultUrl = null;
 
     // Trigger local system file picking explorer
     dropZone.addEventListener('click', (e) => {
@@ -72,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
             resultImage.src = '';
             removeBgBtn.disabled = false;
             downloadBtn.style.display = 'none';
+            resetBtn.style.display = 'none';
             progressContainer.classList.remove('active');
             progressBarFill.style.width = '0%';
             progressPercent.textContent = '0%';
@@ -91,7 +96,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         updateProgress(25, 'Initializing engine models...');
 
-        // Create formal payload request structure
         const formData = new FormData();
         formData.append('image_file', file);
         formData.append('size', 'auto');
@@ -113,39 +117,70 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (response.ok) {
                     outputBlob = await response.blob();
                     successfulKeyIndex = i;
-                    break; // Found functioning key, break layout loop
+                    break; 
                 } else {
                     const errText = await response.text();
-                    console.warn(`Key ${i + 1} failed or ran out of credits. Server response:`, errText);
+                    console.warn(`Key ${i + 1} failed. Response:`, errText);
                 }
             } catch (networkError) {
-                console.error(`Network communication error using Key ${i + 1}:`, networkError);
+                console.error(`Network error on Key ${i + 1}:`, networkError);
             }
         }
 
-        // Evaluate if processing returned a valid image binary payload array stream
         if (outputBlob) {
             updateProgress(90, 'Assembling clean vector alpha masks...');
             
-            const resultUrl = URL.createObjectURL(outputBlob);
+            // Clear any old image URLs to save browser ram usage
+            if (currentResultUrl) URL.revokeObjectURL(currentResultUrl);
             
-            // Render transparent layout file inside canvas wrapper container directly
-            resultImage.src = resultUrl;
-            downloadBtn.href = resultUrl;
+            currentResultUrl = URL.createObjectURL(outputBlob);
+            resultImage.src = currentResultUrl;
+            downloadBtn.href = currentResultUrl;
             
             setTimeout(() => {
                 originalWrapper.classList.remove('scanning');
-                updateProgress(100, `Success! Background removed using Key Matrix ${successfulKeyIndex + 1}.`);
+                updateProgress(100, `Success! Processed via Key Matrix ${successfulKeyIndex + 1}.`);
                 downloadBtn.style.display = 'inline-flex';
+                resetBtn.style.display = 'inline-flex'; // Reveal upload button safely
             }, 600);
             
         } else {
-            // Handle absolute edge error fail cases gracefully
             originalWrapper.classList.remove('scanning');
             removeBgBtn.disabled = false;
             updateProgress(0, 'Error: All configured API keys are empty or restricted.');
             alert('Unable to process request. Please check your Remove.bg API credit logs.');
         }
+    });
+
+    // Reset workflow engine handler for continuous asset dropping loops
+    resetBtn.addEventListener('click', () => {
+        // Clear input values completely
+        imageInput.value = '';
+        fileNameElement.textContent = 'Supports PNG, JPEG, WEBP';
+        
+        // Clean dynamic source wrappers
+        originalImage.src = '';
+        resultImage.src = '';
+        
+        if (currentResultUrl) {
+            URL.revokeObjectURL(currentResultUrl);
+            currentResultUrl = null;
+        }
+
+        // Toggle visibility back to clear upload configuration state
+        previewStage.style.display = 'none';
+        promptContent.style.display = 'block';
+        
+        // Hide control actions
+        downloadBtn.style.display = 'none';
+        resetBtn.style.display = 'none';
+        removeBgBtn.disabled = true;
+        
+        // Reset loader status rows
+        progressContainer.classList.remove('active');
+        progressBarFill.style.width = '0%';
+        progressPercent.textContent = '0%';
+        statusMessage.textContent = 'Ready to process';
     });
 
     function updateProgress(percentage, statusText) {

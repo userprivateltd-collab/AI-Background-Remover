@@ -12,7 +12,6 @@
 </head>
 <body>
     <div class="app-layout">
-        <!-- Main Workspace -->
         <main class="workspace">
             <header class="app-header">
                 <div class="logo-group">
@@ -22,7 +21,6 @@
                 <p class="subtitle">Powered by YELLOW STUDIOS AI platform</p>
             </header>
 
-            <!-- Interactive Dropzone Area -->
             <div class="dropzone-card" id="dropZone">
                 <input type="file" id="imageInput" accept="image/png, image/jpeg, image/webp" hidden>
                 
@@ -33,7 +31,6 @@
                     <span class="file-specs" id="fileName">Supports PNG, JPEG, WEBP</span>
                 </div>
 
-                <!-- Live Interactive Workspace Canvas -->
                 <div class="preview-stage" id="previewStage" style="display: none;">
                     <div class="image-box">
                         <span class="badge">Original</span>
@@ -52,7 +49,6 @@
                 </div>
             </div>
 
-            <!-- Action Control Belt -->
             <div class="controls-belt">
                 <button id="removeBgBtn" class="btn-primary" disabled>
                     <span>Run AI Extraction</span>
@@ -61,9 +57,12 @@
                 <a id="downloadBtn" class="btn-success" style="display: none;" download="yellow_studios_no_bg.png">
                     Download Clean PNG
                 </a>
+
+                <button id="resetBtn" class="btn-secondary" style="display: none;">
+                    <span>Upload New Image</span>
+                </button>
             </div>
 
-            <!-- Progress Engine -->
             <div id="progressContainer" class="progress-container">
                 <div class="progress-status-row">
                     <span id="statusMessage">Ready to process</span>
@@ -75,7 +74,6 @@
             </div>
         </main>
 
-        <!-- Sidebar Panel containing the Context Details -->
         <aside class="sidebar-panel">
             <div class="panel-section">
                 <h3>System Directives</h3>
@@ -84,7 +82,6 @@
             
             <hr class="panel-divider">
 
-            <!-- Original Content Section Kept Exactly as requested -->
             <section class="about-section">
                 <h3>About This Tool</h3>
                 <p>This application is developed by YELLOW STUDIOS,uses advanced AI to instantly detect the primary subject in any photo and smoothly extract it from the background. Perfect for product photos, profile pictures, and design projects.</p>

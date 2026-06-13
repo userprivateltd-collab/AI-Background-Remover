@@ -26,7 +26,6 @@ body {
     overflow: hidden;
 }
 
-/* App Desktop Layout Matrix */
 .app-layout {
     display: flex;
     height: 100vh;
@@ -70,7 +69,6 @@ body {
     letter-spacing: 0.5px;
 }
 
-/* Premium Drag & Drop Area */
 .dropzone-card {
     flex: 1;
     background: var(--bg-surface);
@@ -120,7 +118,6 @@ body {
     color: var(--text-muted);
 }
 
-/* Interactive Preview Screen Canvas */
 .preview-stage {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -186,7 +183,6 @@ body {
     animation: fadeIn 0.4s ease-out forwards;
 }
 
-/* Classic Transparency Grid Background */
 .checkerboard {
     background-color: #1e1e1e;
     background-image: linear-gradient(45deg, #282828 25%, transparent 25%), 
@@ -194,10 +190,8 @@ body {
                       linear-gradient(45deg, transparent 75%, #282828 75%), 
                       linear-gradient(-45deg, transparent 75%, #282828 75%);
     background-size: 20px 20px;
-    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
 }
 
-/* Live Laser Scanline Line Animation Effect */
 .scan-line {
     position: absolute;
     top: 0;
@@ -214,7 +208,6 @@ body {
     animation: scanAnimation 2s linear infinite;
 }
 
-/* Control Controls Belt & Buttons */
 .controls-belt {
     display: flex;
     gap: 1rem;
@@ -258,7 +251,6 @@ button, .btn-success {
     animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
-/* Progress Section Interface */
 .progress-container {
     margin-top: 1.5rem;
     opacity: 0;
@@ -291,10 +283,9 @@ button, .btn-success {
     height: 100%;
     background: var(--accent-blue);
     border-radius: 10px;
-    transition: width 0.1s linear;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Google AI Studio Inspired Sidebar Panel */
 .sidebar-panel {
     width: 320px;
     background-color: var(--bg-sidebar);
@@ -356,16 +347,15 @@ button, .btn-success {
     color: var(--accent-blue);
 }
 
-/* Performance Keyframe Sequences */
 @keyframes scanAnimation {
-    0% { top: 0%; opacity: 1; }
-    50% { top: 100%; opacity: 1; }
-    100% { top: 0%; opacity: 1; }
+    0% { top: 0%; }
+    50% { top: 100%; }
+    100% { top: 0%; }
 }
 
 @keyframes pulseGlow {
     0%, 100% { transform: scale(1); opacity: 0.8; }
-    50% { transform: scale(1.15); opacity: 1; filter: drop-shadow(0 0 4px var(--accent-blue)); }
+    50% { transform: scale(1.1); opacity: 1; }
 }
 
 @keyframes fadeIn {
